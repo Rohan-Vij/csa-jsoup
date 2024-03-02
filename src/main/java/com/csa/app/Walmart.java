@@ -57,12 +57,9 @@ public class Walmart {
                 String content = contentAndAuthor.first().text();
                 String author = contentAndAuthor.last().text();
 
-                System.out.println("----------");
-                System.out.println("Rating: " + rating);
-                System.out.println("Date: " + date);
-                System.out.println("Content: " + content);
-                System.out.println("Author: " + author);
-                System.out.println("Verified: " + verified);
+                Review reviewObject = new Review(rating, verified, date, content, author);
+
+                System.out.println(reviewObject);
             }
 
         } finally {
