@@ -65,7 +65,7 @@ public class Walmart {
         Elements reviews = reviewsList.select("li.dib");
 
         for (Element review : reviews) {
-            char rating = review.select("span.w_iUH7").text().charAt(0);
+            int rating = Character.getNumericValue(review.select("span.w_iUH7").text().charAt(0));
 
             boolean verified = false;
 
