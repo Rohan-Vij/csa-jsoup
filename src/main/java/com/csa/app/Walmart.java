@@ -7,25 +7,33 @@ import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.opencsv.CSVWriter;
+
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 
 public class Walmart {
     private final static String URL = "https://www.walmart.com/reviews/product/";
+    private final static String itemId = "117263923";
 
     public static void main(String[] args) {
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\Rohan\\chromedriver.exe");
-
-        String itemId = "117263923";
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new");
         options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
         WebDriver driver = new ChromeDriver(options);
+
+        ReviewList reviewList = new ReviewList(itemId);
 
         try {
             driver.get(URL + itemId + "?sort=relevancy");
@@ -35,23 +43,42 @@ public class Walmart {
 
             int maxPages = Integer.parseInt(driver.findElement(By.xpath("/html/body/div/div[1]/div/div/div/div/main/nav/ul/li[7]/a")).getText());
 
-            for (int i = 0; i < maxPages; i++) {
-                System.out.println("Page " + (i + 1) + " of " + maxPages);
+            for (int i = 1; i <= maxPages; i++) {
+                System.out.println("Page " + i + " of " + maxPages);
                 System.out.println("URL: " + driver.getCurrentUrl());
                 String source = driver.getPageSource();
                 ArrayList<Review> reviews = getReviewsFromSource(source);
 
                 for (Review review : reviews) {
                     System.out.println(review);
+                    reviewList.addReview(review);
                 }
 
-
-                // replaced nextPage with this to make sure that passing in the driver isn't interfering with anything - but it still doesn't work
-                WebElement nextButton = driver.findElement(By.cssSelector("a[aria-label='Next Page']"));
-                nextButton.click();
+                // nextPageButton(driver); // does not pass Walmart bot detection
+                nextPageURL(driver, i);
 
                 driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
             }
+
+            // Write to CSV
+            try (CSVWriter writer = new CSVWriter(new FileWriter("./src/main/resources/reviews.csv"))) {
+                String[] header = { "Rating", "Comment", "Author", "Date", "Verified?" };
+                writer.writeNext(header);
+
+                for (Review review : reviewList.getReviews()) {
+                    String[] entries = {
+                        String.valueOf(review.getRating()),
+                        review.getContent(),
+                        review.getAuthor(),
+                        review.getDate().toString(),
+                        review.isVerified() ? "Verified" : "Unverified"
+                    };
+                    writer.writeNext(entries);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         } finally {
             driver.quit();
         }
@@ -87,8 +114,14 @@ public class Walmart {
         return reviewsObjectList;
     }
 
-    private static void nextPage(WebDriver driver) {
-        WebElement nextButton = driver.findElement(By.cssSelector("a[aria-label='Next Page']"));
+    private static void nextPageButton(WebDriver driver) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        WebElement nextButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("a[aria-label='Next Page']")));
         nextButton.click();
+    }
+
+    private static void nextPageURL(WebDriver driver, int page) {
+        String newURL = URL + itemId + "?sort=relevancy " + "&page=" + page;
+        driver.get(newURL);
     }
 }
