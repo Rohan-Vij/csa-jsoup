@@ -29,7 +29,7 @@ public class Walmart {
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\Rohan\\chromedriver.exe");
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new");
+        // options.addArguments("--headless=new");
         options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
         WebDriver driver = new ChromeDriver(options);
 
@@ -61,7 +61,8 @@ public class Walmart {
             }
 
             // Write to CSV
-            try (CSVWriter writer = new CSVWriter(new FileWriter("./src/main/resources/reviews.csv"))) {
+            String csvFilename = "./src/main/resources/" + itemId + ".csv";
+            try (CSVWriter writer = new CSVWriter(new FileWriter(csvFilename))) {
                 String[] header = { "Rating", "Comment", "Author", "Date", "Verified?" };
                 writer.writeNext(header);
 
