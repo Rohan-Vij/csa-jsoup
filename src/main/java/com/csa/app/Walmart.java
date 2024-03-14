@@ -23,13 +23,13 @@ import java.util.ArrayList;
 
 public class Walmart {
     private final static String URL = "https://www.walmart.com/reviews/product/";
-    private final static String itemId = "117263923";
+    private final static String itemId = "55172644";
 
     public static void main(String[] args) {
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\Rohan\\chromedriver.exe");
 
         ChromeOptions options = new ChromeOptions();
-        // options.addArguments("--headless=new");
+        options.addArguments("--headless=new");
         options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
         WebDriver driver = new ChromeDriver(options);
 
@@ -41,7 +41,12 @@ public class Walmart {
 
             System.out.println("URL: " + driver.getCurrentUrl());
 
-            int maxPages = Integer.parseInt(driver.findElement(By.xpath("/html/body/div/div[1]/div/div/div/div/main/nav/ul/li[7]/a")).getText());
+            int maxPages = 4;
+            try {
+                maxPages = Integer.parseInt(driver.findElement(By.xpath("/html/body/div/div[1]/div/div/div/div/main/nav/ul/li[7]/a")).getText());
+            } catch (Exception e) {
+                System.out.println("Defaulting to 4");
+            }
 
             for (int i = 1; i <= maxPages; i++) {
                 System.out.println("Page " + i + " of " + maxPages);
